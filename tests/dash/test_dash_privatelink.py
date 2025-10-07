@@ -87,8 +87,7 @@ def common_setup_teardown(
 def test_privatelink_basic_transform(
     ptfadapter,
     dash_pl_config,
-    encap_proto,
-    use_pkt_alt_attrs
+    encap_proto
 ):
     vm_to_dpu_pkt, exp_dpu_to_pe_pkt = outbound_pl_packets(dash_pl_config, encap_proto)
     pe_to_dpu_pkt, exp_dpu_to_vm_pkt = inbound_pl_packets(dash_pl_config)
