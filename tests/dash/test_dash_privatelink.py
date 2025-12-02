@@ -48,7 +48,7 @@ def common_setup_teardown(
     }
     logger.info(base_config_messages)
 
-    apply_messages(localhost, duthost, ptfhost, base_config_messages, dpu_index)
+    apply_messages(localhost, duthost, ptfhost, base_config_messages, dpuhost.dpu_index)
 
     route_and_mapping_messages = {
         **pl.PE_VNET_MAPPING_CONFIG,
@@ -56,20 +56,20 @@ def common_setup_teardown(
         **pl.VM_SUBNET_ROUTE_CONFIG
     }
     logger.info(route_and_mapping_messages)
-    apply_messages(localhost, duthost, ptfhost, route_and_mapping_messages, dpu_index)
+    apply_messages(localhost, duthost, ptfhost, route_and_mapping_messages, dpuhost.dpu_index)
 
     meter_rule_messages = {
         **pl.METER_RULE1_V4_CONFIG,
         **pl.METER_RULE2_V4_CONFIG,
     }
     logger.info(meter_rule_messages)
-    apply_messages(localhost, duthost, ptfhost, meter_rule_messages, dpu_index)
+    apply_messages(localhost, duthost, ptfhost, meter_rule_messages, dpuhost.dpu_index)
 
     logger.info(pl.ENI_CONFIG)
-    apply_messages(localhost, duthost, ptfhost, pl.ENI_CONFIG, dpu_index)
+    apply_messages(localhost, duthost, ptfhost, pl.ENI_CONFIG, dpuhost.dpu_index)
 
     logger.info(pl.ENI_ROUTE_GROUP1_CONFIG)
-    apply_messages(localhost, duthost, ptfhost, pl.ENI_ROUTE_GROUP1_CONFIG, dpu_index)
+    apply_messages(localhost, duthost, ptfhost, pl.ENI_ROUTE_GROUP1_CONFIG, dpuhost.dpu_index)
 
     yield
 
@@ -85,7 +85,8 @@ def common_setup_teardown(
 def test_privatelink_basic_transform(
     ptfadapter,
     dash_pl_config,
-    encap_proto
+    encap_proto,
+    use_pkt_alt_attrs
 ):
     vm_to_dpu_pkt, exp_dpu_to_pe_pkt = outbound_pl_packets(dash_pl_config, encap_proto)
     pe_to_dpu_pkt, exp_dpu_to_vm_pkt = inbound_pl_packets(dash_pl_config)

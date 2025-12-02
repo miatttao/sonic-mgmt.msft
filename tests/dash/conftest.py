@@ -30,13 +30,6 @@ def get_interface_ip(duthost, interface):
     return ip_interface(output)
 
 
-@pytest.fixture(scope="module")
-def dpu_ip(duthost, dpu_index):
-    dpu_port = get_dpu_dataplane_port(duthost, dpu_index)
-    npu_interface_ip = get_interface_ip(duthost, dpu_port)
-    return npu_interface_ip.ip + 1
-
-
 def pytest_addoption(parser):
     """
     Adds pytest options that are used by DASH tests
@@ -52,12 +45,6 @@ def pytest_addoption(parser):
         "--config_only",
         action="store_true",
         help="Apply new configurations on DUT without running tests"
-    )
-
-    parser.addoption(
-        "--skip_cleanup",
-        action="store_true",
-        help="Skip config cleanup after test"
     )
 
     parser.addoption(
@@ -451,6 +438,31 @@ def vxlan_udp_dport(request, duthost):
 
     logger.info("Restore the VXLAN UDP dst port to 4789")
     config_vxlan_udp_dport(duthost, 4789)
+
+
+@pytest.fixture(scope="module")
+def set_vxlan_udp_sport_range(dpuhosts, dpu_index):
+    """
+    Configure VXLAN UDP source port range in dpu configuration.
+
+    """
+    dpuhost = dpuhosts[dpu_index]
+    vxlan_sport_config = [
+        {
+            "SWITCH_TABLE:switch": {
+                "vxlan_sport": VXLAN_UDP_BASE_SRC_PORT,
+                "vxlan_mask": VXLAN_UDP_SRC_PORT_MASK
+            },
+            "OP": "SET"
+        }
+    ]
+
+    config_path = "/tmp/vxlan_sport_config.json"
+    dpuhost.copy(content=json.dumps(vxlan_sport_config, indent=4), dest=config_path, verbose=False)
+    apply_swssconfig_file(dpuhost, config_path)
+    yield
+    if str(VXLAN_UDP_BASE_SRC_PORT) in dpuhost.shell("redis-cli -n 0 hget SWITCH_TABLE:switch vxlan_sport")['stdout']:
+        config_reload(dpuhost, safe_reload=True)
 
 
 @pytest.fixture(scope="function")
