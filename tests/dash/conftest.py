@@ -440,31 +440,6 @@ def vxlan_udp_dport(request, duthost):
     config_vxlan_udp_dport(duthost, 4789)
 
 
-@pytest.fixture(scope="module")
-def set_vxlan_udp_sport_range(dpuhosts, dpu_index):
-    """
-    Configure VXLAN UDP source port range in dpu configuration.
-
-    """
-    dpuhost = dpuhosts[dpu_index]
-    vxlan_sport_config = [
-        {
-            "SWITCH_TABLE:switch": {
-                "vxlan_sport": VXLAN_UDP_BASE_SRC_PORT,
-                "vxlan_mask": VXLAN_UDP_SRC_PORT_MASK
-            },
-            "OP": "SET"
-        }
-    ]
-
-    config_path = "/tmp/vxlan_sport_config.json"
-    dpuhost.copy(content=json.dumps(vxlan_sport_config, indent=4), dest=config_path, verbose=False)
-    apply_swssconfig_file(dpuhost, config_path)
-    yield
-    if str(VXLAN_UDP_BASE_SRC_PORT) in dpuhost.shell("redis-cli -n 0 hget SWITCH_TABLE:switch vxlan_sport")['stdout']:
-        config_reload(dpuhost, safe_reload=True)
-
-
 @pytest.fixture(scope="function")
 def set_vxlan_udp_sport_range(dpuhosts, dpu_index):
     """
